@@ -26,11 +26,13 @@ A simple web interface for querying Thai stock market data and news via a chatbo
    ```bash
    git clone https://github.com/your-username/thai-stock-chatbot.git
    cd thai-stock-chatbot
-2.	**Install dependencies
+2.	**Install dependencies**
    ```bash
    pip install -r requirements.txt
-3.	**Run the backend server
+   ```
+3.	**Run the backend server**
    ```bash
    uvicorn chatbot_gemini:app --reload --host 127.0.0.1 --port 8000
-4.	**Open the frontend
+```
+4.	**Open the frontend**
     Open chatbot_ui.html in your browser.
