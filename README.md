@@ -6,8 +6,8 @@ A simple web interface for querying Thai stock market data and news via a chatbo
 
 - **Free-form Q&A** about Thai stocks via `/chat` endpoint  
 - **Real-time SET Index** lookup via `/realtime_index` endpoint  
-- **News-aware queries** combining latest headlines with user questions via `/realtime_news` + `/chat` chatbot_ui.html](file-service://file-HyijSB4RLJAfg36GxW6KN2)  
-- **Markdown responses** rendered in browser using [marked.js](https://github.com/markedjs/marked) chatbot_ui.html](file-service://file-HyijSB4RLJAfg36GxW6KN2)  
+- **News-aware queries** combining latest headlines with user questions 
+- **Markdown responses** rendered in browser using
 
 ## Tech Stack
 
