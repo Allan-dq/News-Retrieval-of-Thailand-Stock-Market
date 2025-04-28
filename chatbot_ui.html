@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thai Stock Market Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      text-align: center;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px; /* Give the button some spacing */
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #response {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f4f4f4;
+      border-radius: 5px;
+      text-align: left;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <h2>📈 Thai Stock Market Chatbot</h2>
+
+  <input type="text" id="query" placeholder="Ask me about the Thai stock market...">
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="fetchSetIndexData()">Get SET Index Data</button>
+  <!-- New button -->
+  <button onclick="sendNewsQuery()">Ask Gemini with Latest News</button>
+
+  <div id="response"></div>
+
+<!-- Import the marked library for Markdown to HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <script>
+    let sessionId = localStorage.getItem("chatSessionId");
+    if (!sessionId) {
+      sessionId = "testsession-" + Date.now();
+      localStorage.setItem("chatSessionId", sessionId);
+    }
+
+    function sendMessage() {
+      const query = document.getElementById("query").value;
+      if (!query) {
+        alert("Please enter a question.");
+        return;
+      }
+
+      fetch(`http://127.0.0.1:8000/chat?session_id=${sessionId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("API Response:", data);
+        const responseElement = document.getElementById("response");
+        if (data.error) {
+          responseElement.innerHTML = `<strong>Error:</strong> ${data.error}`;
+        } else {
+          const rawMarkdown = data.response || "No response received.";
+          const htmlContent = marked.parse(rawMarkdown);
+          responseElement.innerHTML = `<strong>Response:</strong><br>${htmlContent}`;
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("response").innerHTML =
+          `<strong>Error:</strong> Unable to connect to the chatbot.`;
+      });
+    }
+
+    function fetchSetIndexData() {
+      fetch("http://127.0.0.1:8000/realtime_index")
+        .then(response => response.json())
+        .then(data => {
+          console.log("SET Index Data:", data);
+          const responseElement = document.getElementById("response");
+          if (data.error) {
+            responseElement.innerHTML = `<strong>API Error:</strong> ${data.error}, ${data.message}`;
+          } else {
+            const jsonString = JSON.stringify(data, null, 2);
+            responseElement.innerHTML = `<strong>SET Index Data:</strong><br><pre>${jsonString}</pre>`;
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("response").innerHTML =
+            `<strong>Error:</strong> Unable to fetch SET index data.`;
+        });
+    }
+
+    // Added feature: first fetch the latest news data, then combine it with the user's question to call the Gemini API
+    function sendNewsQuery() {
+      const query = document.getElementById("query").value;
+      if (!query) {
+        alert("Please enter a question.");
+        return;
+      }
+
+      // Call the SET news API, assuming the endpoint is /realtime_news
+      fetch("http://127.0.0.1:8000/realtime_news")
+        .then(response => response.json())
+        .then(newsData => {
+          console.log("News Data:", newsData);
+          let newsContent = "";
+          if (newsData.error) {
+            newsContent = "No news available.";
+          } else {
+          // Assuming the returned data contains a 'news' property, if not, convert the entire JSON
+            newsContent = newsData.news || JSON.stringify(newsData);
+          }
+
+          // Construct a combined query by integrating the latest news information with the user's question
+          const combinedQuery = `最新新闻信息：${newsContent}\n\n基于以上最新新闻，请回答以下问题：${query}`;
+
+          // Call the Gemini API to get the answer
+          fetch(`http://127.0.0.1:8000/chat?session_id=${sessionId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ query: combinedQuery })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log("Gemini Response with News:", data);
+            const responseElement = document.getElementById("response");
+            if (data.error) {
+              responseElement.innerHTML = `<strong>Error:</strong> ${data.error}`;
+            } else {
+              const rawMarkdown = data.response || "No response received.";
+              const htmlContent = marked.parse(rawMarkdown);
+              responseElement.innerHTML = `<strong>Response:</strong><br>${htmlContent}`;
+            }
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("response").innerHTML =
+              `<strong>Error:</strong> Unable to connect to the chatbot.`;
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching news:", error);
+          document.getElementById("response").innerHTML =
+            `<strong>Error:</strong> Unable to fetch news data.`;
+        });
+    }
+  </script>
+</body>
+</html>
