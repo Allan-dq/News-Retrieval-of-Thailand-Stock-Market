@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import requests
 import uvicorn
 import json
+import os
 import logging
 from typing import Optional
 import yfinance as yf
@@ -21,10 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GEMINI_API_KEY = "REDACTED"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 SYSTEM_INSTRUCTION = "You are a financial assistant specializing in the Thai stock market."
 
-SET_API_KEY = "REDACTED"
+SET_API_KEY = os.environ.get("SET_API_KEY", "")
 
 conversation_history = {}
 
