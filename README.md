@@ -1,38 +1,44 @@
 # Thai Stock Market Chatbot
 
-A simple web interface for querying Thai stock market data and news via a chatbot powered by a Python backend and Gemini/OpenAI.
+LLM-powered Q&A assistant for the Thai stock market (SET), built as a course project at Johns Hopkins University (Mar–May 2025). A FastAPI backend routes each question either to a live price lookup or to Gemini, and a lightweight browser UI renders the answers as Markdown.
 
-## Features
+## What it does
 
-- **Free-form Q&A** about Thai stocks via `/chat` endpoint  
-- **Real-time SET Index** lookup via `/realtime_index` endpoint  
-- **News-aware queries** combining latest headlines with user questions 
-- **Markdown responses** rendered in browser using
+- **Intent routing**: questions such as "price of PTT" or "quote for AOT" are parsed into a SET ticker (`PTT.BK`) and answered with the latest close from Yahoo Finance; everything else goes to Gemini 2.0 Flash.
+- **Multi-turn chat**: `POST /chat?session_id=...` keeps per-session conversation history so follow-up questions keep their context.
+- **Live market data**: `GET /realtime_index` proxies the SET Marketplace real-time API for selected indices and symbols.
+- **News collection**: `Scrap.ipynb` scrapes Bangkok Post business articles (URL, title, date, author, body) into `bangkokpost_business_articles.csv` for news retrieval experiments.
+- **Browser UI**: `chatbot_ui.html` is a single-page chat client that renders responses with marked.js.
 
-## Tech Stack
+## Tech stack
 
-- Frontend: HTML, CSS, JavaScript  
-- Markdown parsing: marked.js  
-- Backend: Python (FastAPI or Flask), OpenAI/Gemini API, requests  
+Python · FastAPI · Uvicorn · Gemini API (REST) · yfinance · SET Marketplace API · requests · BeautifulSoup · HTML/CSS/JavaScript · marked.js
 
-## Requirements
+## Run locally
 
-- Python 3.8+  
-- `pip install -r requirements.txt` (e.g., `fastapi`, `uvicorn`, `openai`, `requests`)
+```bash
+git clone https://github.com/Allan-dq/News-Retrieval-of-Thailand-Stock-Market.git
+cd News-Retrieval-of-Thailand-Stock-Market
+pip install -r requirements.txt
 
-## Installation
+export GEMINI_API_KEY="your-gemini-key"
+export SET_API_KEY="your-set-marketplace-key"   # only needed for /realtime_index
 
-1. **Clone repo**  
-   ```bash
-   git clone https://github.com/your-username/thai-stock-chatbot.git
-   cd thai-stock-chatbot
-2.	**Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3.	**Run the backend server**
-   ```bash
-   uvicorn chatbot_gemini:app --reload --host 127.0.0.1 --port 8000
+uvicorn chatbot_gemini:app --reload --host 127.0.0.1 --port 8000
 ```
-4.	**Open the frontend**
-    Open chatbot_ui.html in your browser.
+
+Then open `chatbot_ui.html` in a browser.
+
+## Endpoints
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/chat?query=...` | Single-turn question to Gemini |
+| POST | `/chat?session_id=...` | Multi-turn chat; body `{"query": "..."}` |
+| GET | `/realtime_index` | SET real-time index and stock data |
+
+## Limitations
+
+- Conversation history is kept in memory and is lost on restart.
+- Ticker extraction is rule-based (trigger phrases), not model-based.
+- The UI's news panel expects a `/realtime_news` endpoint that this backend does not implement yet.
