@@ -42,3 +42,7 @@ Then open `chatbot_ui.html` in a browser.
 - Conversation history is kept in memory and is lost on restart.
 - Ticker extraction is rule-based (trigger phrases), not model-based.
 - The UI's news panel expects a `/realtime_news` endpoint that this backend does not implement yet.
+
+## License
+
+The code is released under the [MIT License](LICENSE). Scraped news text belongs to its original publishers and is not covered by this license.
